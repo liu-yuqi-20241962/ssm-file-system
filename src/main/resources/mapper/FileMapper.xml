@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.ssm.mapper.FileMapper">
+
+    <!-- 插入文件元信息，回填自增主键 -->
+    <insert id="insert" parameterType="FileInfo" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO file_info
+            (origin_name, store_name, file_path, ext, file_size, content_type, uploader_id, status)
+        VALUES
+            (#{originName}, #{storeName}, #{filePath}, #{ext}, #{fileSize}, #{contentType}, #{uploaderId}, 1)
+    </insert>
+
+    <!-- 查询当前登录用户的文件（不含已删除），支持按分类筛选，并统计每个文件的下载次数 -->
+    <select id="listByUploader" resultType="FileInfo">
+        SELECT f.id, f.origin_name, f.store_name, f.file_path, f.ext, f.file_size,
+               f.content_type, f.uploader_id, f.create_time, f.status,
+               CASE
+                   WHEN f.ext IN ('pdf', 'doc', 'docx') THEN '文档'
+                   WHEN f.ext IN ('jpg', 'png') THEN '图片'
+                   WHEN f.ext = 'zip' THEN '压缩包'
+                   ELSE '其他'
+               END AS category,
+               (SELECT COUNT(*) FROM download_log d WHERE d.file_id = f.id) AS download_count
+        FROM file_info f
+        WHERE f.uploader_id = #{uploaderId} AND f.status &lt;&gt; 0
+        <if test="category != null and category != ''">
+            AND CASE
+                    WHEN f.ext IN ('pdf', 'doc', 'docx') THEN '文档'
+                    WHEN f.ext IN ('jpg', 'png') THEN '图片'
+                    WHEN f.ext = 'zip' THEN '压缩包'
+                    ELSE '其他'
+                END = #{category}
+        </if>
+        ORDER BY f.create_time DESC
+    </select>
+
+    <!-- 按主键取单条记录：下载前据此取存储路径并做归属校验 -->
+    <select id="findById" resultType="FileInfo">
+        SELECT id, origin_name, store_name, file_path, ext, file_size,
+               content_type, uploader_id, create_time, status
+        FROM file_info
+        WHERE id = #{id}
+    </select>
+
+    <!-- 冻结/解冻/逻辑删除：只有上传者本人能操作自己的文件 -->
+    <update id="updateStatus">
+        UPDATE file_info
+        SET status = #{status}
+        WHERE id = #{id} AND uploader_id = #{uploaderId}
+    </update>
+
+    <!-- F5：写入下载日志 -->
+    <insert id="insertDownloadLog">
+        INSERT INTO download_log (file_id, downloader_id)
+        VALUES (#{fileId}, #{downloaderId})
+    </insert>
+
+</mapper>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+
+    <settings>
+        <!-- 数据库下划线字段(real_name)自动映射到实体驼峰属性(realName) -->
+        <setting name="mapUnderscoreToCamelCase" value="true"/>
+        <!-- 控制台打印 SQL，便于调试 -->
+        <setting name="logImpl" value="STDOUT_LOGGING"/>
+    </settings>
+
+    <!-- 实体类别名：Mapper XML 中 resultType 可直接写类名 -->
+    <typeAliases>
+        <package name="com.example.ssm.entity"/>
+    </typeAliases>
+
+    <!--
+        Mapper XML 位置在 spring-datasource.xml 的 SqlSessionFactoryBean#mapperLocations 中
+        以 classpath:mapper/*.xml 统一加载，这里无需重复声明。
+    -->
+
+</configuration>

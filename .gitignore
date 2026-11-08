@@ -1,0 +1,15 @@
+# Maven 构建产物
+target/
+
+# IntelliJ IDEA 项目文件（每个人本机不同，无需提交）
+.idea/
+*.iml
+out/
+
+# 日志与系统文件
+*.log
+.DS_Store
+Thumbs.db
+
+# 上传文件（运行时生成，不应入库）
+upload/
